@@ -16,7 +16,7 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 	return func(w http.ResponseWriter, r *http.Request) {
 		shortUrl := r.RequestURI
 		if longUrl, ok := pathsToUrls[shortUrl]; ok {
-			http.Redirect(w, r, longUrl, 301)
+			http.Redirect(w, r, longUrl, http.StatusFound)
 			return
 		}
 
