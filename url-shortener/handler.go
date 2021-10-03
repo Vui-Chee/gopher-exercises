@@ -15,12 +15,12 @@ import (
 func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		shortUrl := r.RequestURI
-		longUrl, ok := pathsToUrls[shortUrl]
-		if ok {
+		if longUrl, ok := pathsToUrls[shortUrl]; ok {
 			http.Redirect(w, r, longUrl, 301)
-		} else {
-			fallback.ServeHTTP(w, r)
+			return
 		}
+
+		fallback.ServeHTTP(w, r)
 	}
 }
 
