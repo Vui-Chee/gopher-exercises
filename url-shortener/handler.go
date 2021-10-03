@@ -45,15 +45,22 @@ type pathUrl struct {
 	URL  string `yaml:"url"`
 }
 
-func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	parsed := []pathUrl{}
-	err := yaml.Unmarshal([]byte(yml), &parsed)
-	if err != nil {
+func parseYaml(data []byte) ([]pathUrl, error) {
+	pathUrls := []pathUrl{}
+	if err := yaml.Unmarshal(data, &pathUrls); err != nil {
 		return nil, err
+	}
+	return pathUrls, nil
+}
+
+func YAMLHandler(data []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	pathUrls, error := parseYaml(data)
+	if error != nil {
+		return nil, error
 	}
 
 	pathsToUrls := map[string]string{}
-	for _, pathUrl := range parsed {
+	for _, pathUrl := range pathUrls {
 		pathsToUrls[pathUrl.Path] = pathUrl.URL
 	}
 
