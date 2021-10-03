@@ -40,25 +40,21 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 //
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
+type pathUrl struct {
+	Path string `yaml:"path"`
+	URL  string `yaml:"url"`
+}
+
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	parsed := []map[string]string{}
+	parsed := []pathUrl{}
 	err := yaml.Unmarshal([]byte(yml), &parsed)
 	if err != nil {
 		return nil, err
 	}
 
 	pathsToUrls := map[string]string{}
-	for _, pathToUrl := range parsed {
-		var path string
-		var url string
-		for k, v := range pathToUrl {
-			if k == "path" {
-				path = v
-			} else {
-				url = v
-			}
-		}
-		pathsToUrls[path] = url
+	for _, pathUrl := range parsed {
+		pathsToUrls[pathUrl.Path] = pathUrl.URL
 	}
 
 	return MapHandler(pathsToUrls, fallback), nil
