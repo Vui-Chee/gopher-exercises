@@ -54,9 +54,9 @@ func parseYaml(data []byte) ([]pathUrl, error) {
 }
 
 func YAMLHandler(data []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	pathUrls, error := parseYaml(data)
-	if error != nil {
-		return nil, error
+	pathUrls, err := parseYaml(data)
+	if err != nil {
+		return nil, err
 	}
 
 	pathsToUrls := map[string]string{}
