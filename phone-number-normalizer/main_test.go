@@ -22,7 +22,7 @@ func TestNormalize(t *testing.T) {
 			want := testCase.want
 			output := normalize(testCase.input)
 			if output != want {
-				t.Errorf("Expect \"%s\", got \"%s\"", want, output)
+				t.Errorf("Expected \"%s\", got \"%s\"", want, output)
 			}
 		})
 
