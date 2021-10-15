@@ -25,6 +25,5 @@ func TestNormalize(t *testing.T) {
 				t.Errorf("Expected \"%s\", got \"%s\"", want, output)
 			}
 		})
-
 	}
 }
