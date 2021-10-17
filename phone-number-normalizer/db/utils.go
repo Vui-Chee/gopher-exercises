@@ -6,21 +6,21 @@ import (
 )
 
 const (
-	MAIN_DB = "postgres"
-	SSL     = "disable"
+	SSL = "disable" // For development only.
 )
 
-func ConnectDB(dbName string) (*sql.DB, error) {
+func Connect(driverName string, dbName string) (*sql.DB, error) {
 	connStr := fmt.Sprintf("dbname=%s sslmode=%s", dbName, SSL)
-	conn, err := sql.Open("postgres", connStr)
+	conn, err := sql.Open(driverName, connStr)
 	if err != nil {
 		return nil, err
 	}
 	return conn, nil
 }
 
-func CreateDB(dbName string) error {
-	conn, err := ConnectDB(MAIN_DB)
+// Create database with default database connection.
+func Create(driverName string, defaultDbName string, dbName string) error {
+	conn, err := Connect(driverName, defaultDbName)
 	if err != nil {
 		return err
 	}

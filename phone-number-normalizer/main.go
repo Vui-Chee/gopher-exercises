@@ -13,6 +13,8 @@ import (
 )
 
 const (
+	DEFAULT_DB  = "postgres"
+	DRIVER      = "postgres"
 	PHONE_TABLE = "phone_numbers"
 	DB_NAME     = "phone_directory"
 )
@@ -53,8 +55,8 @@ func main() {
 		"(123)456-7892",
 	}
 
-	scream(db.CreateDB(DB_NAME))
-	conn, err := db.ConnectDB(DB_NAME) // Use the newly created database
+	scream(db.Create(DRIVER, DEFAULT_DB, DB_NAME))
+	conn, err := db.Connect(DRIVER, DB_NAME) // Use the newly created database
 	scream(err)
 	scream(db.CreateTable(conn, PHONE_TABLE, `
 		id SERIAL PRIMARY KEY,
