@@ -90,7 +90,7 @@ func main() {
 	`))
 
 	for _, phone_number := range phone_numbers {
-		rowEntry := fmt.Sprintf("default, '%s'", phone_number)
+		rowEntry := fmt.Sprintf("default, '%s'", normalize(phone_number))
 		id, err := insertSingleEntry(conn, PHONE_TABLE, rowEntry)
 		scream(err)
 		fmt.Printf("Inserted id %d\n", id)
