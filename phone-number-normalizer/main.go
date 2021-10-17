@@ -9,13 +9,12 @@ import (
 	"unicode"
 
 	_ "github.com/lib/pq"
+	"github.com/vui-chee/gopher-exercises/phone-number-normalizer/db"
 )
 
 const (
-	MAIN_DB     = "postgres"
 	PHONE_TABLE = "phone_numbers"
 	DB_NAME     = "phone_directory"
-	SSL         = "disable"
 )
 
 func scream(err error) {
@@ -33,33 +32,6 @@ func normalize(phone string) string {
 		}
 	}
 	return builder.String()
-}
-
-func connectDB(dbName string) (*sql.DB, error) {
-	connStr := fmt.Sprintf("dbname=%s sslmode=%s", dbName, SSL)
-	conn, err := sql.Open("postgres", connStr)
-	if err != nil {
-		return nil, err
-	}
-	return conn, nil
-}
-
-func createDB(dbName string) error {
-	conn, err := connectDB(MAIN_DB)
-	if err != nil {
-		return err
-	}
-	conn.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName))
-	conn.Close()
-	return nil
-}
-
-func createTable(conn *sql.DB, tableName string, tableSchema string) error {
-	tableQuery := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s)", tableName, tableSchema)
-	if _, err := conn.Exec(tableQuery); err != nil {
-		return err
-	}
-	return nil
 }
 
 func insertSingleEntry(conn *sql.DB, tableName string, value string) (int, error) {
@@ -81,10 +53,10 @@ func main() {
 		"(123)456-7892",
 	}
 
-	scream(createDB(DB_NAME))
-	conn, err := connectDB(DB_NAME) // Use the newly created database
+	scream(db.CreateDB(DB_NAME))
+	conn, err := db.ConnectDB(DB_NAME) // Use the newly created database
 	scream(err)
-	scream(createTable(conn, PHONE_TABLE, `
+	scream(db.CreateTable(conn, PHONE_TABLE, `
 		id SERIAL PRIMARY KEY,
 		number VARCHAR(255)
 	`))
