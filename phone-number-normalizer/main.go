@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,10 +12,10 @@ import (
 )
 
 const (
-	MAIN_DB    = "postgres"
-	DB_NAME    = "phone_directory"
-	SSL        = "disable"
-	MAIN_TABLE = "phone_numbers"
+	MAIN_DB     = "postgres"
+	PHONE_TABLE = "phone_numbers"
+	DB_NAME     = "phone_directory"
+	SSL         = "disable"
 )
 
 func scream(err error) {
@@ -28,13 +27,11 @@ func scream(err error) {
 
 func normalize(phone string) string {
 	var builder strings.Builder
-
 	for _, ch := range phone {
 		if unicode.IsDigit(ch) {
 			builder.WriteRune(ch)
 		}
 	}
-
 	return builder.String()
 }
 
@@ -44,7 +41,6 @@ func connectDB(dbName string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return conn, nil
 }
 
@@ -53,7 +49,6 @@ func createDB(dbName string) error {
 	if err != nil {
 		return err
 	}
-
 	conn.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName))
 	conn.Close()
 	return nil
@@ -64,24 +59,16 @@ func createTable(conn *sql.DB, tableName string, tableSchema string) error {
 	if _, err := conn.Exec(tableQuery); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func insertTable(conn *sql.DB, tableName string, values []string) error {
-	if conn == nil {
-		return errors.New("Please provide a database to insert into.")
+func insertSingleEntry(conn *sql.DB, tableName string, value string) (int, error) {
+	var id int
+	insertQuery := fmt.Sprintf("insert into %s values (%s) RETURNING id", tableName, value)
+	if err := conn.QueryRow(insertQuery).Scan(&id); err != nil {
+		return -1, err
 	}
-
-	// For simplicity, I am not going to expolate to any kind of table.
-	for _, value := range values {
-		_, err := conn.Exec(fmt.Sprintf("insert into %s values (default, '%s')", tableName, value))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return id, nil
 }
 
 func main() {
@@ -97,9 +84,15 @@ func main() {
 	scream(createDB(DB_NAME))
 	conn, err := connectDB(DB_NAME) // Use the newly created database
 	scream(err)
-	scream(createTable(conn, "phone_numbers", `
+	scream(createTable(conn, PHONE_TABLE, `
 		id SERIAL PRIMARY KEY,
 		number VARCHAR(255)
 	`))
-	scream(insertTable(conn, "phone_numbers", phone_numbers))
+
+	for _, phone_number := range phone_numbers {
+		rowEntry := fmt.Sprintf("default, '%s'", phone_number)
+		id, err := insertSingleEntry(conn, PHONE_TABLE, rowEntry)
+		scream(err)
+		fmt.Printf("Inserted id %d\n", id)
+	}
 }
