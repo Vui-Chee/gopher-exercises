@@ -2,10 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"strings"
-	"unicode"
 
 	_ "github.com/lib/pq"
 	"github.com/vui-chee/gopher-exercises/phone-number-normalizer/db"
@@ -17,23 +13,6 @@ const (
 	PHONE_TABLE = "phone_numbers"
 	DB_NAME     = "phone_directory"
 )
-
-func scream(err error) {
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-}
-
-func normalize(phone string) string {
-	var builder strings.Builder
-	for _, ch := range phone {
-		if unicode.IsDigit(ch) {
-			builder.WriteRune(ch)
-		}
-	}
-	return builder.String()
-}
 
 func main() {
 	phone_numbers := []string{
