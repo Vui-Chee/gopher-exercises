@@ -11,7 +11,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var pool *sql.DB
+const (
+	MAIN_DB    = "postgres"
+	DB_NAME    = "phone_directory"
+	SSL        = "disable"
+	MAIN_TABLE = "phone_numbers"
+)
 
 func normalize(phone string) string {
 	var builder strings.Builder
@@ -25,42 +30,49 @@ func normalize(phone string) string {
 	return builder.String()
 }
 
+func connectDB(dbName string) (*sql.DB, error) {
+	connStr := fmt.Sprintf("dbname=%s sslmode=%s", dbName, SSL)
+	conn, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+func createDB(dbName string) error {
+	conn, err := connectDB(MAIN_DB)
+	if err != nil {
+		return err
+	}
+
+	conn.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName))
+	conn.Close()
+	return nil
+}
+
+func createTable(conn *sql.DB, tableName string, tableSchema string) error {
+	tableQuery := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s)", tableName, tableSchema)
+	if _, err := conn.Exec(tableQuery); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func scream(err error) {
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+}
+
 func main() {
-	// Get arg
-	if len(os.Args) <= 1 {
-		log.Println("Please supply a single word.")
-		return
-	}
-	word := os.Args[1]
-
-	// Try connect
-	connStr := "dbname=postgres sslmode=disable"
-	pool, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	defer pool.Close()
-
-	// Insert db
-	_, err = pool.Exec(fmt.Sprintf("insert into users values ('%s')", word))
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	// Query db
-	rows, err := pool.Query("SELECT * FROM users")
-	if err != nil {
-		log.Fatal("Query failed, reason: ", err)
-		return
-	}
-
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			log.Fatal(err)
-		}
-		println(name)
-	}
+	scream(createDB(DB_NAME))
+	conn, err := connectDB(DB_NAME) // Use the newly created database
+	scream(err)
+	scream(createTable(conn, "phone_numbers", `
+		id SERIAL PRIMARY KEY,
+		number VARCHAR(255)
+	`))
 }
