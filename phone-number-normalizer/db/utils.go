@@ -36,3 +36,12 @@ func CreateTable(conn *sql.DB, tableName string, tableSchema string) error {
 	}
 	return nil
 }
+
+func Insert(conn *sql.DB, tableName string, value string) (int, error) {
+	var id int
+	insertQuery := fmt.Sprintf("insert into %s values (%s) RETURNING id", tableName, value)
+	if err := conn.QueryRow(insertQuery).Scan(&id); err != nil {
+		return -1, err
+	}
+	return id, nil
+}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -36,15 +35,6 @@ func normalize(phone string) string {
 	return builder.String()
 }
 
-func insertSingleEntry(conn *sql.DB, tableName string, value string) (int, error) {
-	var id int
-	insertQuery := fmt.Sprintf("insert into %s values (%s) RETURNING id", tableName, value)
-	if err := conn.QueryRow(insertQuery).Scan(&id); err != nil {
-		return -1, err
-	}
-	return id, nil
-}
-
 func main() {
 	phone_numbers := []string{
 		"1234567890",
@@ -65,7 +55,7 @@ func main() {
 
 	for _, phone_number := range phone_numbers {
 		rowEntry := fmt.Sprintf("default, '%s'", normalize(phone_number))
-		id, err := insertSingleEntry(conn, PHONE_TABLE, rowEntry)
+		id, err := db.Insert(conn, PHONE_TABLE, rowEntry)
 		scream(err)
 		fmt.Printf("Inserted id %d\n", id)
 	}
